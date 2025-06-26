@@ -1,0 +1,67 @@
+# =============================================================================
+# House Price Predictor - モデル訓練設定
+# =============================================================================
+
+# データ分割設定
+data_split:
+  test_size: 0.2
+  random_state: 42
+  shuffle: true
+  stratify: null  # 回帰問題のためnull
+
+# 交差検証設定
+cross_validation:
+  cv_folds: 5
+  cv_scoring: "neg_mean_absolute_error"
+  shuffle: true
+  random_state: 42
+
+# ハイパーパラメータ最適化
+hyperparameter_optimization:
+  n_trials: 100
+  timeout: 300
+  direction: "minimize"  # MAEを最小化
+  metric: "mae"
+
+# モデル保存設定
+model_persistence:
+  save_model: true
+  save_preprocessor: true
+  save_metadata: true
+  save_predictions: true
+  compression: "gzip"
+
+# 評価設定
+evaluation:
+  # 評価メトリクス
+  metrics:
+    - "mae"
+    - "mse"
+    - "rmse"
+    - "r2"
+    - "mape"
+  
+  # 閾値設定
+  thresholds:
+    r2_min: 0.7
+    mae_max: 100000
+    rmse_max: 150000
+
+# ログ設定
+logging:
+  verbose: true
+  log_level: "INFO"
+  save_training_logs: true
+  log_file: "logs/training.log"
+
+# 並列処理設定
+parallel:
+  n_jobs: -1
+  backend: "threading"
+  memory_efficient: false
+
+# メモリ管理
+memory:
+  batch_size: 1000
+  max_memory_usage: "4GB"
+  cleanup_after_training: true

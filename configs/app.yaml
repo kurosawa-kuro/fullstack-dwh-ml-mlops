@@ -1,17 +1,54 @@
+# =============================================================================
+# simple-dwh-mlops - アプリケーション設定ファイル
+# =============================================================================
+
+# アプリケーション設定
 app:
-  environment: development
-  name: House Price Predictor
-  version: 1.0.0
-database:
-  path: models/trained/house_price_dwh.duckdb
-  type: duckdb
-ensemble: {}
-logging:
-  file: logs/app.log
-  format: json
-  level: INFO
+  name: "simple-dwh-mlops"
+  version: "1.0.0"
+  environment: "development"
+  debug: true
+  root_path: "/home/wsl/dev/mlops/simple-dwh-mlops"
+
+# MLflow設定
 mlflow:
-  experiment_name: house_price_prediction
-  tracking_uri: http://localhost:5555
-models: {}
-training: {}
+  tracking_uri: "http://localhost:5555"
+  experiment_name: "house_price_prediction"
+  artifact_location: "models/artifacts"
+  
+  # データストア設定
+  backend_store_uri: "sqlite:///mlflow.db"
+  default_artifact_root: "mlruns"
+  
+  # アーティファクト設定
+  artifacts:
+    local:
+      enabled: true
+      path: "mlruns"
+      
+  # モデルレジストリ設定
+  model_registry:
+    enabled: true
+    backend_store_uri: "sqlite:///mlflow.db"
+    
+  # 実験管理設定
+  experiments:
+    auto_create: true
+    default_experiment: "house_price_prediction"
+    
+  # ログ設定
+  logging:
+    level: "INFO"
+    format: "json"
+    file: "logs/mlflow.log"
+    
+  # セキュリティ設定
+  security:
+    enable_proxy: false
+    trusted_hosts: ["localhost", "127.0.0.1"]
+    
+  # パフォーマンス設定
+  performance:
+    max_artifact_size: "1GB"
+    max_parameter_size: "250KB"
+    max_metric_size: "250KB"
