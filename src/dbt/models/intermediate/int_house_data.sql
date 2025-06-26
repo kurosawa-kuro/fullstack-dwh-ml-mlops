@@ -1,11 +1,11 @@
 {{
   config(
     materialized='table',
-    tags=['silver', 'cleaning']
+    tags=['intermediate', 'cleaning']
   )
 }}
 
--- Silver Layer: データクリーニングと標準化
+-- Intermediate Layer: データクリーニングと標準化
 -- 仕様書に基づくデータ検証、クリーニング、派生フィールド計算
 
 WITH cleaned_data AS (
@@ -45,7 +45,7 @@ WITH cleaned_data AS (
     
     created_at
     
-  FROM {{ source('bronze', 'bronze_raw_house_data') }}
+  FROM {{ ref('stg_house_data') }}
 ),
 
 derived_data AS (

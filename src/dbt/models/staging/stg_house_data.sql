@@ -1,11 +1,11 @@
 {{
   config(
-    materialized='table',
-    schema='bronze'
+    materialized='view',
+    schema='stg'
   )
 }}
 
--- Bronze layer: Raw house data from CSV seed
+-- Staging layer: Raw house data from CSV seed
 -- This model loads raw data directly from the CSV file using dbt seeds
 SELECT 
     ROW_NUMBER() OVER (ORDER BY price) as id,  -- Generate surrogate key
