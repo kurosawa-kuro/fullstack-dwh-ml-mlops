@@ -22,18 +22,20 @@ help:
 	@echo "  make format                  # コードフォーマット"
 	@echo "  make clean                   # クリーンアップ"
 	@echo ""
-	@echo "🗄️ DWH関連:"
-	@echo "  make dwh-bronze              # Bronze層データ取り込み"
-	@echo "  make dwh-explore             # DWHデータ探索"
-	@echo "  make dwh-stats               # DWH統計情報"
-	@echo "  make dwh-tables              # DWHテーブル一覧"
-	@echo "  make dwh-cli                 # DuckDB CLI起動"
-	@echo "  make dwh-unlock              # DWHロック解除"
+	@echo "🗄️ DWH関連 (DuckDB/探索系):"
+	@echo "  make dwh-cli                 # DuckDB CLI起動（手動で直接DBを触りたい場合のみ）"
+	@echo "  make dwh-unlock              # DWHロック解除（DuckDBプロセス強制終了）"
+	@echo "  ※ DWHデータ探索・統計・テーブル一覧などは、dbtモデル/seed/testで再現・確認できます"
 	@echo ""
 	@echo "🛠️ dbt関連:"
-	@echo "  make dbt-run                 # dbtでSilver/Gold層作成"
-	@echo "  make dbt-train               # dbt学習スクリプト実行"
-	@echo "  make dbt-docs                # dbtドキュメント生成"
+	@echo "  make dbt-deps                # dbt依存パッケージ取得"
+	@echo "  make dbt-seed                # シードデータ投入"
+	@echo "  make dbt-run                 # dbt全層（staging/intermediate/marts）一括実行"
+	@echo "  make dbt-staging             # Staging層のみ実行"
+	@echo "  make dbt-intermediate        # Intermediate層のみ実行"
+	@echo "  make dbt-marts               # Marts層のみ実行"
+	@echo "  make dbt-test                # dbtテスト一括実行"
+	@echo "  make dbt-docs                # dbtドキュメント生成＆サーブ"
 	@echo ""
 	@echo "🚀 パイプライン:"
 	@echo "  make pipeline-all            # 一括実行（全パイプライン）"
@@ -654,3 +656,39 @@ metabase-update-driver:
 	@echo "🔄 Metabase再起動が必要です: make metabase-restart" 
 
 # source .venv/bin/activate && python src/dbt/ingest_raw_data.py
+
+# =============================================================================
+# dbt (Data Build Tool) コマンド
+# =============================================================================
+
+# 依存パッケージ取得
+dbt-deps:
+	@cd src/dbt && dbt deps
+
+# 全層（staging→intermediate→marts）一括実行
+dbt-run:
+	@cd src/dbt && dbt run --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# テスト一括実行
+dbt-test:
+	@cd src/dbt && dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# Staging層のみ
+dbt-staging:
+	@cd src/dbt && dbt run --select staging --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# Intermediate層のみ
+dbt-intermediate:
+	@cd src/dbt && dbt run --select intermediate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# Marts層のみ
+dbt-marts:
+	@cd src/dbt && dbt run --select marts --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# シード投入
+dbt-seed:
+	@cd src/dbt && dbt seed --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
+
+# ドキュメント生成＆サーブ
+dbt-docs:
+	@cd src/dbt && dbt docs generate && dbt docs serve --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
