@@ -313,3 +313,4 @@ docs/_build/
 
 # PyBuilder
 target/
+data/interim/house_price_dwh.duckdb
