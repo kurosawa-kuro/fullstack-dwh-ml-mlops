@@ -17,23 +17,24 @@ clean-targets:
   - "dbt_packages"
 
 models:
-  house_price_dwh:
-    bronze:
-      +materialized: table
-    silver:
-      +materialized: table
-    gold:
-      +materialized: table
+  +materialized: table
+  staging:
+    +schema: stg
+    +materialized: view
+  intermediate:
+    +schema: int
+  marts:
+    +schema: mart
+    +tags: ["ml"]
 
 seeds:
-  house_price_dwh:
-    +schema: raw
-    house_data:
-      +column_types:
-        price: integer
-        sqft: integer
-        bedrooms: integer
-        bathrooms: float
-        location: varchar
-        year_built: integer
-        condition: varchar 
+  +schema: raw
+  house_data:
+    +column_types:
+      price: integer
+      sqft: integer
+      bedrooms: integer
+      bathrooms: float
+      location: varchar
+      year_built: integer
+      condition: varchar 

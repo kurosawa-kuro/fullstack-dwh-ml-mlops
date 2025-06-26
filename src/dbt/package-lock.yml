@@ -4,5 +4,5 @@ packages:
     version: 1.1.1
   - name: codegen
     package: dbt-labs/codegen
-    version: 0.9.0
-sha1_hash: 109bba9c8e788d238fd149f8ba7e27acab8bb7d7
+    version: 0.12.1
+sha1_hash: d974113b0f072cce35300077208f38581075ab40

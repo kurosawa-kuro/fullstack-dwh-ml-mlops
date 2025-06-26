@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: ft_house_ml
-    description: "ML用特徴量テーブル（Gold Layer）"
+  - name: f_house_ml
+    description: "ML用特徴量テーブル（Marts Layer）"
     config:
       materialized: table
-      tags: ['gold', 'ml_features']
+      tags: ['marts', 'ml_features']
     columns:
       - name: price
         description: "ターゲット変数：住宅価格"

@@ -10,13 +10,13 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 def model(dbt, session):
     """
-    Gold Layer: ML用特徴量エンジニアリング
+    Marts Layer: ML用特徴量エンジニアリング
     仕様書に基づく高次特徴量の生成と前処理アーティファクトの保存
     """
     
-    # Silverデータの取得
-    silver_df = dbt.ref("silver_house_data")
-    df = silver_df.df()
+    # Intermediateデータの取得
+    intermediate_df = dbt.ref("int_house_data")
+    df = intermediate_df.df()
     
     # 品質フラグでフィルタリング（仕様書 2.3）
     df = df[df["is_complete_record"] == True].copy()

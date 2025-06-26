@@ -1,11 +1,11 @@
 version: 2
 
 models:
-  - name: silver_house_data
-    description: "Cleaned and standardized house data from bronze layer"
+  - name: int_house_data
+    description: "Cleaned and standardized house data from staging layer"
     columns:
       - name: id
-        description: "Primary key from bronze layer"
+        description: "Primary key from staging layer"
         tests:
           - not_null
           - unique
