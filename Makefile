@@ -13,8 +13,9 @@ help:
 	@echo "📋 利用可能なコマンド:"
 	@echo ""
 	@echo "🔧 基本コマンド:"
-	@echo "  make deps-dev                # 開発用依存関係インストール"
-	@echo "  make deps-prod               # 本番用依存関係インストール"
+	@echo "  make install                 # 依存関係インストール"
+	@echo "  make deps-dev                # 依存関係インストール"
+	@echo "  make deps-prod               # 依存関係インストール"
 	@echo "  make test-unit               # 単体テスト"
 	@echo "  make test-integ              # 統合テスト"
 	@echo "  make test-e2e                # E2Eテスト"
@@ -63,25 +64,28 @@ venv:
 	@echo "📝 または、make install を実行して依存関係をインストールしてください"
 
 # 依存関係インストール
+install: deps-dev
+	@echo "✅ 依存関係インストール完了"
+
 deps-dev:
-	@echo "📦 開発用依存関係インストール中..."
+	@echo "📦 依存関係インストール中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/pip install -r configs/requirements-dev.txt; \
+		.venv/bin/pip install -r configs/requirements.txt; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
-	@echo "✅ 開発用依存関係インストール完了"
+	@echo "✅ 依存関係インストール完了"
 
 deps-prod:
-	@echo "📦 本番用依存関係インストール中..."
+	@echo "📦 依存関係インストール中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/pip install -r configs/requirements-prod.txt; \
+		.venv/bin/pip install -r configs/requirements.txt; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
-	@echo "✅ 本番用依存関係インストール完了"
+	@echo "✅ 依存関係インストール完了"
 
 # 全テスト実行
 test: test-unit test-integ test-e2e
