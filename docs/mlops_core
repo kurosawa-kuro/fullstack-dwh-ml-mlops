@@ -1,0 +1,99 @@
+### **`mlops_core/` に置く “共通基盤” の具体機能一覧**
+
+> ざっくり言えば **「Kaggle 毎に何度も書き直したくない“インフラ＆下回り”」** を全部ここへ集約します。
+> コンペ固有のロジックは `src/` にだけ残るイメージです。
+
+| カテゴリ                 | 代表モジュール / クラス                                | どんな処理を肩代わりする？                                       | 例 API                                             |
+| -------------------- | -------------------------------------------- | --------------------------------------------------- | ------------------------------------------------- |
+| **① ユーティリティ共通**      | `logging.py`, `exceptions.py`, `paths.py`    | ロガー初期化・共通例外・ディレクトリ解決                                | `from mlops_core.logging import get_logger`       |
+| **② 設定ロード**          | `config/loader.py`, `schema.py`              | YAML ↔ `pydantic.BaseModel` で型安全に読み込む               | `cfg = load_config("configs/train_config.yaml")`  |
+| **③ データレイヤ**         | `data/ingestion.py`, `database.py`, `dwh.py` | DuckDB / SQLite / cloud-DWH への I/O、S3 キャッシュ         | `ingest_csv("data/raw/train.csv", table="raw")`   |
+| **④ 特徴量ベース**         | `features/base.py`, `transformers.py`        | 「fit → transform」の共通インターフェース、pandas & polars 対応     | <code>class TargetMeanEncoder(BaseFeature)</code> |
+| **⑤ ML パイプライン基底**    | `ml/pipeline.py`, `model_wrapper.py`         | `fit/predict/save/load` ひな型＆クロスバリデーション              | `pipe = TabularPipeline(cfg).fit(df)`             |
+| **⑥ 評価・メトリクス**       | `ml/evaluation.py`                           | LB 指標 + ローカル指標の一元実装                                 | `score_auc(y_true, y_pred)`                       |
+| **⑦ トラッキング連携**       | `tracking/mlflow_helper.py`                  | MLflow run の開始/終了、タグ付け、モデル登録                        | `with mlflow_run(cfg): ...`                       |
+| **⑧ CLI / エントリポイント** | `cli/train.py`, `cli/infer.py`               | `python -m mlops_core.train --cfg configs/...` で即実行 | hide / typer で実装                                  |
+| **⑨ テスト用ヘルパ**        | `testing/fixtures.py`                        | ダミー DataFrame・TempDir の供給                           | `def dummy_df(code_length=100): ...`              |
+
+---
+
+#### 🌟 **この中に「絶対入れておくと嬉しい」最小セット**
+
+| 必須度 | モジュール                             | 理由                                 |
+| --- | --------------------------------- | ---------------------------------- |
+| ★★★ | `logging.py` + `config/loader.py` | 全スクリプトがまず呼ぶ基盤。                     |
+| ★★★ | `ml/pipeline.py`                  | 学習・推論の save/load 互換性を保つ鍵。          |
+| ★★☆ | `tracking/mlflow_helper.py`       | MLflow を毎回コピペせずに済む。                |
+| ★★☆ | `data/ingestion.py`               | DuckDB <-> pandas/polars の定型処理を統一。 |
+| ★☆☆ | `features/base.py`                | 大会が進んで特徴量が増えるほど威力発揮。               |
+
+---
+
+### **サブモジュール化するメリット**
+
+| 観点         | サブモジュール (`git submodule`)              | 別パッケージ (`pip install mlops_core`) |
+| ---------- | -------------------------------------- | --------------------------------- |
+| **改修反映**   | `git submodule update --remote` で即取り込み | バージョン番号を上げて `pip install -U`      |
+| **ローカル改変** | 各コンペ側でも直接編集できる（*diff 追えます*）            | PyPI 配布なら fork 必要                 |
+| **CI 簡便さ** | 1 repo のみビルド対象                         | パッケージ公開用の別 CI が要る                 |
+
+> **「まず submodule → 後で PyPI」** が推奨ルート。
+> 成熟して「API もう変えない」と確信できたタイミングで PyPI 化すると管理が楽になります。
+
+---
+
+### **ディレクトリ雛形**
+
+```
+mlops_core/
+├── __init__.py
+├── logging.py
+├── exceptions.py
+├── config/
+│   ├── __init__.py
+│   ├── loader.py
+│   └── schema.py
+├── utils/
+│   ├── paths.py
+│   └── io.py
+├── data/
+│   ├── __init__.py
+│   ├── ingestion.py
+│   └── database.py
+├── features/
+│   ├── __init__.py
+│   └── base.py
+├── ml/
+│   ├── __init__.py
+│   ├── pipeline.py
+│   ├── model_wrapper.py
+│   └── evaluation.py
+├── tracking/
+│   └── mlflow_helper.py
+└── cli/
+    ├── __init__.py
+    ├── train.py
+    └── infer.py
+```
+
+---
+
+### **導入後の使用イメージ (例)**
+
+```python
+# src/pipelines/train_pipeline.py
+from mlops_core.config import load_config
+from mlops_core.ml.pipeline import TabularPipeline
+from mlops_core.tracking import mlflow_helper as mf
+
+cfg = load_config("configs/train_config.yaml")
+
+with mf.start_run(cfg):
+    pipe = TabularPipeline(cfg)
+    pipe.fit(cfg.data.train_path)
+    mf.log_model(pipe.model, "best_model")
+    pipe.save("models/best_model.pkl")
+```
+
+これで **各コンペリポジトリ側は「特徴量とモデルロジック」だけに集中**でき、
+ロギング・設定・実験管理は **`mlops_core` がワンストップで面倒を見る**構図になります。

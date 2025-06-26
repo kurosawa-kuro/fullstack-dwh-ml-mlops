@@ -1,7 +1,7 @@
 # ML Model CI/CD Makefile (Refactored)
 # 開発者体験向上のための便利コマンド集
 
-.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt train-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver
+.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt train-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver ingest-dbt docs
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -464,12 +464,23 @@ ingest:
 	fi
 	@echo "✅ DWH構築完了"
 
+# dbtでBronze層データ取り込み
+ingest-dbt:
+	@echo "🗄️ dbtでBronze層データ取り込み中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/python scripts/ingest_raw_data_dbt.py; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+	@echo "✅ dbt Bronze層データ取り込み完了"
+
 # dbtで全層（Bronze/Silver/Gold）作成
 dbt:
 	@echo "🔄 dbtで全層（Bronze/Silver/Gold）作成中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/dbt run --project-dir src/ml/data/dwh/house_price_dbt && \
-		.venv/bin/dbt test --project-dir src/ml/data/dwh/house_price_dbt; \
+		.venv/bin/dbt run --project-dir src/dbt && \
+		.venv/bin/dbt test --project-dir src/dbt; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -479,7 +490,7 @@ dbt:
 docs:
 	@echo "📄 dbtドキュメント生成中..."
 	@if [ -d ".venv" ]; then \
-		cd src/ml/data/dwh/house_price_dbt && ../../../.venv/bin/dbt docs generate && ../../../.venv/bin/dbt docs serve; \
+		cd src/dbt && ../../.venv/bin/dbt docs generate && ../../.venv/bin/dbt docs serve; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -489,7 +500,7 @@ docs:
 train-dbt:
 	@echo "🔧 dbt学習スクリプト実行中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/python src/ml/data/dwh/house_price_dbt/train.py; \
+		.venv/bin/python src/dbt/run_dbt_pipeline.py; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -602,3 +613,5 @@ metabase-update-driver:
 	@bash deployment/metabase/setup.sh
 	@echo "✅ ドライバ更新完了"
 	@echo "🔄 Metabase再起動が必要です: make metabase-restart" 
+
+# source .venv/bin/activate && python src/dbt/ingest_raw_data.py

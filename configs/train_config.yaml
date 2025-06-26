@@ -1,0 +1,90 @@
+# =============================================================================
+# House Price Predictor - 学習設定
+# =============================================================================
+
+# プロジェクト基本設定
+project:
+  name: "house-prices-mlops"
+  version: "1.0.0"
+  description: "機械学習による住宅価格予測システム"
+  author: "MLOps Team"
+  license: "MIT"
+
+# データ設定
+data:
+  # 生データ設定
+  raw:
+    path: "data/raw"
+    file_name: "house_price_data.csv"
+    encoding: "utf-8"
+  
+  # データ分割設定
+  split:
+    test_size: 0.2
+    random_state: 42
+    shuffle: true
+    stratify: null  # 回帰問題のためnull
+
+# 交差検証設定
+cross_validation:
+  cv_folds: 5
+  cv_scoring: "neg_mean_absolute_error"
+  shuffle: true
+  random_state: 42
+
+# ハイパーパラメータ最適化
+hyperparameter_optimization:
+  n_trials: 100
+  timeout: 300
+  direction: "minimize"  # MAEを最小化
+  metric: "mae"
+
+# モデル保存設定
+model_persistence:
+  save_model: true
+  save_preprocessor: true
+  save_metadata: true
+  save_predictions: true
+  compression: "gzip"
+  save_path: "models/trained"
+  model_name: "house_price_model"
+  version: "latest"
+
+# 評価メトリクス
+evaluation:
+  metrics:
+    - "mae"
+    - "mse"
+    - "rmse"
+    - "r2"
+    - "mape"
+  threshold:
+    r2_min: 0.7
+    mae_max: 100000
+    rmse_max: 150000
+
+# 訓練固有設定
+training_specific:
+  verbose: true
+  save_training_logs: true
+  log_file: "logs/training.log"
+  cleanup_after_training: true
+
+# ログ設定
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/app.log"
+  max_size: "10MB"
+  backup_count: 5
+
+# パフォーマンス設定
+performance:
+  batch_size: 1000
+  max_workers: 4
+  cache_enabled: true
+  cache_ttl: 3600
+  n_jobs: -1
+  backend: "threading"
+  memory_efficient: false
+  max_memory_usage: "4GB" 

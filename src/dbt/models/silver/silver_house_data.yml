@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: silver_house_data
+    description: "Cleaned and standardized house data from bronze layer"
+    columns:
+      - name: id
+        description: "Primary key from bronze layer"
+        tests:
+          - not_null
+          - unique
+      
+      - name: price
+        description: "Cleaned house price in USD"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      
+      - name: sqft
+        description: "Cleaned square footage"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      
+      - name: bedrooms
+        description: "Cleaned number of bedrooms"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      
+      - name: bathrooms
+        description: "Cleaned number of bathrooms"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      
+      - name: year_built
+        description: "Cleaned year the house was built"
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1900
+      
+      - name: location
+        description: "Standardized location (uppercase, trimmed)"
+        tests:
+          - not_null
+      
+      - name: condition
+        description: "Standardized condition (uppercase, trimmed)"
+        tests:
+          - not_null
+      
+      - name: price_per_sqft
+        description: "Price per square foot (derived)"
+      
+      - name: house_age
+        description: "Age of the house in years (derived)"
+      
+      - name: bed_bath_ratio
+        description: "Ratio of bedrooms to bathrooms (derived)"
+      
+      - name: is_complete_record
+        description: "Flag indicating complete record for ML"
+        tests:
+          - not_null
+      
+      - name: is_price_outlier
+        description: "Flag indicating price outlier"
+        tests:
+          - not_null
+      
+      - name: is_age_outlier
+        description: "Flag indicating age outlier"
+        tests:
+          - not_null 
