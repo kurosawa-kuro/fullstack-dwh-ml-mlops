@@ -468,19 +468,58 @@ ingest:
 ingest-dbt:
 	@echo "🗄️ dbtでBronze層データ取り込み中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/python scripts/ingest_raw_data_dbt.py; \
+		cd src/dbt && ../../.venv/bin/python ../data_ingest/ingest_raw.py; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
 	@echo "✅ dbt Bronze層データ取り込み完了"
 
-# dbtで全層（Bronze/Silver/Gold）作成
+# dbtで全層（Staging/Intermediate/Marts）作成
 dbt:
-	@echo "🔄 dbtで全層（Bronze/Silver/Gold）作成中..."
+	@echo "🔄 dbtで全層（Staging/Intermediate/Marts）作成中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/dbt run --project-dir src/dbt && \
-		.venv/bin/dbt test --project-dir src/dbt; \
+		cd src/dbt && ../../.venv/bin/dbt run && ../../.venv/bin/dbt test; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+
+# dbtでStaging層のみ実行
+dbt-staging:
+	@echo "🔄 dbtでStaging層実行中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt run --select staging; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+
+# dbtでIntermediate層のみ実行
+dbt-intermediate:
+	@echo "🔄 dbtでIntermediate層実行中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt run --select intermediate; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+
+# dbtでMarts層のみ実行
+dbt-marts:
+	@echo "🔄 dbtでMarts層実行中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt run --select marts; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+
+# dbtテスト実行
+dbt-test:
+	@echo "🧪 dbtテスト実行中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt test; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -500,7 +539,7 @@ docs:
 train-dbt:
 	@echo "🔧 dbt学習スクリプト実行中..."
 	@if [ -d ".venv" ]; then \
-		.venv/bin/python src/dbt/run_dbt_pipeline.py; \
+		.venv/bin/python src/data_ingest/run_dbt.py; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
