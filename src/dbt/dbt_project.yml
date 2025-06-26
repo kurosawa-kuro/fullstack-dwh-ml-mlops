@@ -27,4 +27,13 @@ models:
 
 seeds:
   house_price_dwh:
-    +schema: raw 
+    +schema: raw
+    house_data:
+      +column_types:
+        price: integer
+        sqft: integer
+        bedrooms: integer
+        bathrooms: float
+        location: varchar
+        year_built: integer
+        condition: varchar 

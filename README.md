@@ -173,6 +173,125 @@ graph TD
 
 ---
 
+## 🗄️ dbtによるデータ取り込み（推奨）
+
+### 🎯 従来のPythonスクリプトからdbtへの移行
+
+このプロジェクトでは、rawデータの取り込みを**dbt**を使用して行うことを推奨しています。
+
+#### ✅ dbtを使用する利点
+
+1. **データパイプラインの統一管理**
+   - SQLベースのデータ変換パイプライン
+   - データ品質テスト・バリデーション
+   - 依存関係管理・DAG構築
+
+2. **データ品質の保証**
+   - 自動テスト実行
+   - データ型の検証
+   - 欠損値・異常値の検出
+
+3. **ドキュメント自動生成**
+   - データカタログの自動生成
+   - データ系譜の追跡
+   - チーム間での共有
+
+4. **バージョン管理**
+   - Gitベースの変更管理
+   - ロールバック機能
+   - 環境別の設定管理
+
+#### 🔄 使用方法
+
+```bash
+# dbtでBronze層データ取り込み（推奨）
+make ingest-dbt
+
+# 従来のPythonスクリプト（非推奨）
+make ingest
+```
+
+#### 📁 ファイル構成
+
+```
+src/dbt/
+├── dbt_project.yml          # dbtプロジェクト設定
+├── models/
+│   ├── bronze/              # Bronze層モデル
+│   │   └── bronze_raw_house_data.sql
+│   ├── silver/              # Silver層モデル
+│   └── gold/                # Gold層モデル
+├── seeds/                   # CSVファイル
+│   └── house_data.csv
+├── scripts/                 # 実行スクリプト
+│   └── ingest_raw_data_dbt.py
+└── models/sources.yml       # データソース定義
+```
+
+#### 🏗️ Bronze層の実装
+
+```sql
+-- models/bronze/bronze_raw_house_data.sql
+{{
+  config(
+    materialized='table',
+    schema='bronze'
+  )
+}}
+
+SELECT 
+    ROW_NUMBER() OVER (ORDER BY price) as id,  -- サロゲートキー生成
+    price,
+    sqft,
+    bedrooms,
+    bathrooms,
+    location,
+    year_built,
+    condition,
+    CURRENT_TIMESTAMP as created_at,
+    CURRENT_TIMESTAMP as updated_at
+FROM {{ ref('house_data') }}
+```
+
+#### 🧪 データ品質テスト
+
+```yaml
+# models/sources.yml
+sources:
+  - name: raw
+    tables:
+      - name: house_data
+        columns:
+          - name: price
+            tests:
+              - not_null
+              - positive_values
+          - name: sqft
+            tests:
+              - not_null
+              - positive_values
+```
+
+#### 🔄 移行手順
+
+1. **CSVファイルをseedsディレクトリにコピー**
+2. **Bronze層モデルを作成**
+3. **データ品質テストを定義**
+4. **dbtコマンドで実行**
+
+```bash
+# 1. seedsの実行（CSV取り込み）
+dbt seed
+
+# 2. Bronze層モデルの実行
+dbt run --select bronze
+
+# 3. テストの実行
+dbt test --select bronze
+```
+
+---
+
 ## 📊 モデル性能比較（2025年1月時点）
 
 | モデル                | MAE（平均絶対誤差） | R²（決定係数） | 訓練時間 | 推論速度 | メモリ使用量 |
@@ -206,6 +325,7 @@ graph TD
 | `make venv`            | 仮想環境作成 | 30秒 | 初回セットアップ |
 | `make install`         | 依存関係インストール | 2分 | 初回セットアップ |
 | `make dwh`             | DWH構築・データ投入 | 1分 | データ準備 |
+| `make ingest-dbt`      | dbtでBronze層データ取り込み | 1分 | データ準備（推奨） |
 | `make train-ensemble`  | アンサンブルモデル訓練 | 3分 | モデル訓練 |
 | `make check-ensemble`  | アンサンブルモデル性能確認 | 30秒 | 性能確認 |
 | `make start-services`  | 全サービス起動 | 30秒 | 開発開始 |
@@ -219,11 +339,13 @@ graph TD
 | `make type-check`      | 型チェック | 30秒 |
 
 ### 🔄 パイプライン操作
-| コマンド                | 説明 | 実行時間 |
-|------------------------|------|----------|
-| `make pipeline`        | 全パイプライン実行 | 10分 |
-| `make status`          | 状態確認 | 5秒 |
-| `make clean`           | クリーンアップ | 10秒 |
+| コマンド                | 説明 | 実行時間 | 用途 |
+|------------------------|------|----------|------|
+| `make ingest-dbt`      | dbtでBronze層データ取り込み | 1分 | rawデータ取り込み |
+| `make dbt`             | dbtで全層（Bronze/Silver/Gold）作成 | 2分 | データ変換 |
+| `make pipeline`        | 全パイプライン実行 | 10分 | 一括実行 |
+| `make status`          | 状態確認 | 5秒 | 状態確認 |
+| `make clean`           | クリーンアップ | 10秒 | クリーンアップ |
 
 ### 🐳 Docker操作
 | コマンド                | 説明 | 実行時間 |
