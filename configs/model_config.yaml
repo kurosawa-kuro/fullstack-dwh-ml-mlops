@@ -1,0 +1,114 @@
+# =============================================================================
+# House Price Predictor - モデル設定
+# =============================================================================
+
+# モデル基本設定
+model:
+  name: "house_price_prediction"
+  best_model: "RandomForest"
+  target_variable: "price"
+  model_type: "regression"
+  version: "1.0.0"
+
+# 特徴量設定
+features:
+  # データソース
+  source: "duckdb"
+  view_name: "v_house_analytics"
+  
+  # 特徴量カテゴリ
+  numerical:
+    - "sqft"
+    - "bedrooms"
+    - "bathrooms"
+    - "house_age"
+    - "bed_bath_ratio"
+    - "condition_score"
+    - "year_value"
+  
+  categorical:
+    - "location_name"
+    - "location_type"
+    - "condition_name"
+    - "decade"
+    - "century"
+  
+  # 除外カラム
+  drop_columns: []
+
+# ベースモデル設定
+base_models:
+  RandomForest:
+    n_estimators: 100
+    max_depth: 10
+    min_samples_split: 2
+    min_samples_leaf: 1
+    random_state: 42
+    n_jobs: -1
+    criterion: "squared_error"
+    
+  LinearRegression:
+    fit_intercept: true
+    normalize: false
+    copy_X: true
+    n_jobs: -1
+    positive: false
+
+# 代替モデル設定（比較用）
+alternative_models:
+  RandomForest:
+    n_estimators: 300
+    max_depth: 15
+    min_samples_split: 3
+    min_samples_leaf: 1
+    max_features: 'sqrt'
+    random_state: 42
+    n_jobs: -1
+    
+  GradientBoosting:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.05
+    subsample: 0.8
+    random_state: 42
+    loss: "squared_error"
+    
+  XGBoost:
+    n_estimators: 200
+    max_depth: 6
+    learning_rate: 0.1
+    subsample: 0.8
+    colsample_bytree: 0.8
+    random_state: 42
+    n_jobs: -1
+
+# アンサンブル設定
+ensemble:
+  # アンサンブル手法
+  method: "voting"
+  
+  # Voting設定
+  voting:
+    estimator_weights: [0.4, 0.3, 0.3]
+    voting: "soft"
+    
+  # Stacking設定
+  stacking:
+    cv: 5
+    n_jobs: -1
+    passthrough: false
+    
+  # Blending設定
+  blending:
+    holdout_size: 0.2
+    random_state: 42
+    
+  # メタモデル設定
+  meta_model:
+    name: "LinearRegression"
+    params:
+      fit_intercept: true
+      normalize: false
+      copy_X: true
+      n_jobs: -1
+      positive: false 
