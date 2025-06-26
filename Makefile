@@ -602,3 +602,5 @@ metabase-update-driver:
 	@bash deployment/metabase/setup.sh
 	@echo "✅ ドライバ更新完了"
 	@echo "🔄 Metabase再起動が必要です: make metabase-restart" 
+
+# source .venv/bin/activate && python src/dbt/ingest_raw_data.py

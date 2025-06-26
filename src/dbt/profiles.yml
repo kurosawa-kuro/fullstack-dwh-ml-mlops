@@ -1,0 +1,8 @@
+house_price_dwh:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "../../data/interim/house_price_dwh.duckdb"
+      schema: main
+      threads: 4 

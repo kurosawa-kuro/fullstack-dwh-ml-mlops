@@ -184,6 +184,39 @@ src/data/dwh/dwh/data/*.duckdb-shm
 src/data/dwh/dwh/data/*.duckdb-wal
 
 # =============================================================================
+# dbt (Data Build Tool)
+# =============================================================================
+
+# dbt generated files and directories
+src/dbt/target/
+src/dbt/logs/
+src/dbt/dbt_packages/
+src/dbt/dbt_modules/
+src/dbt/dbt_project.yml.bak
+src/dbt/profiles.yml.bak
+
+# dbt artifacts
+src/dbt/target/compiled/
+src/dbt/target/run/
+src/dbt/target/manifest.json
+src/dbt/target/run_results.json
+src/dbt/target/catalog.json
+src/dbt/target/index.html
+src/dbt/target/sources.json
+
+# dbt logs
+src/dbt/logs/*.log
+src/dbt/logs/dbt.log
+
+# dbt cache
+src/dbt/.dbt/
+src/dbt/.dbt_cache/
+
+# dbt temporary files
+src/dbt/tmp/
+src/dbt/temp/
+
+# =============================================================================
 # Machine Learning Layer (src/ml/)
 # =============================================================================
 
