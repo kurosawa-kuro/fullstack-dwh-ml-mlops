@@ -13,7 +13,7 @@ app:
 # MLflow設定
 mlflow:
   tracking_uri: "http://localhost:5555"
-  experiment_name: "house_price_prediction"
+  experiment_name: "simple-dwh-mlops"
   artifact_location: "models/artifacts"
   
   # データストア設定
@@ -34,7 +34,7 @@ mlflow:
   # 実験管理設定
   experiments:
     auto_create: true
-    default_experiment: "house_price_prediction"
+    default_experiment: "simple-dwh-mlops"
     
   # ログ設定
   logging:

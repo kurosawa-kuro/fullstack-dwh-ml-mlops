@@ -31,37 +31,9 @@ model_persistence:
   save_predictions: true
   compression: "gzip"
 
-# 評価設定
-evaluation:
-  # 評価メトリクス
-  metrics:
-    - "mae"
-    - "mse"
-    - "rmse"
-    - "r2"
-    - "mape"
-  
-  # 閾値設定
-  thresholds:
-    r2_min: 0.7
-    mae_max: 100000
-    rmse_max: 150000
-
-# ログ設定
-logging:
+# 訓練固有設定
+training_specific:
   verbose: true
-  log_level: "INFO"
   save_training_logs: true
   log_file: "logs/training.log"
-
-# 並列処理設定
-parallel:
-  n_jobs: -1
-  backend: "threading"
-  memory_efficient: false
-
-# メモリ管理
-memory:
-  batch_size: 1000
-  max_memory_usage: "4GB"
   cleanup_after_training: true

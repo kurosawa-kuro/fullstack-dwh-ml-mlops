@@ -59,27 +59,6 @@ training:
   shuffle: true
   stratify: null
 
-# モデル評価設定
-evaluation:
-  # 評価メトリクス
-  metrics:
-    - "mae"
-    - "r2"
-    - "rmse"
-    - "mape"
-  
-  # 閾値設定
-  thresholds:
-    r2_min: 0.7
-    mae_max: 100000
-    rmse_max: 150000
-  
-  # 評価方法
-  methods:
-    - "cross_validation"
-    - "holdout_test"
-    - "bootstrap"
-
 # アンサンブル固有設定
 ensemble_specific:
   # 重み最適化

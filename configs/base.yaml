@@ -36,7 +36,7 @@ database:
     read_only: false
     memory: false
 
-# 機械学習基本設定
+# 機械学習共通設定
 ml:
   # 特徴量設定
   features:
@@ -51,7 +51,7 @@ ml:
     model_name: "house_price_model"
     version: "latest"
   
-  # 評価メトリクス
+  # 評価メトリクス（共通）
   evaluation:
     metrics:
       - "mae"
@@ -62,8 +62,9 @@ ml:
     threshold:
       r2_min: 0.7
       mae_max: 100000
+      rmse_max: 150000
 
-# ログ設定
+# ログ設定（共通）
 logging:
   level: "INFO"
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -71,10 +72,13 @@ logging:
   max_size: "10MB"
   backup_count: 5
 
-# パフォーマンス設定
+# パフォーマンス設定（共通）
 performance:
   batch_size: 1000
   max_workers: 4
   cache_enabled: true
   cache_ttl: 3600
-  n_jobs: -1 
+  n_jobs: -1
+  backend: "threading"
+  memory_efficient: false
+  max_memory_usage: "4GB" 
