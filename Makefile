@@ -1,7 +1,7 @@
 # ML Model CI/CD Makefile (Refactored)
 # 開発者体験向上のための便利コマンド集
 
-.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt dbt-deps dbt-seed dbt-staging dbt-intermediate dbt-marts dbt-test dbt-docs train-dbt dbt-all ingest-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver docs
+.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt dbt-deps dbt-seed dbt-staging dbt-intermediate dbt-marts dbt-test dbt-docs train-dbt dbt-all ingest-dbt sync-seed all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver docs
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -29,15 +29,16 @@ help:
 	@echo ""
 	@echo "🛠️ dbt関連:"
 	@echo "  make dbt-deps                # dbt依存パッケージ取得"
-	@echo "  make dbt-seed                # シードデータ投入"
+	@echo "  make sync-seed               # 生データをdbt seedsに同期"
+	@echo "  make dbt-seed                # シードデータ投入（同期付き）"
 	@echo "  make dbt                     # dbt全層（staging/intermediate/marts）一括実行"
-	@echo "  make dbt-all                 # dbt一括実行（seed + run + test）"
+	@echo "  make dbt-all                 # dbt一括実行（同期 + seed + run + test）"
 	@echo "  make dbt-staging             # Staging層のみ実行（stg_house_data）"
 	@echo "  make dbt-intermediate        # Intermediate層のみ実行（int_house_data）"
 	@echo "  make dbt-marts               # Marts層のみ実行（f_house_ml）"
 	@echo "  make dbt-test                # dbtテスト一括実行"
 	@echo "  make dbt-docs                # dbtドキュメント生成＆サーブ"
-	@echo "  make ingest-dbt              # dbtでBronze層データ取り込み"
+	@echo "  make ingest-dbt              # dbtでBronze層データ取り込み（同期付き）"
 	@echo ""
 	@echo "🚀 パイプライン:"
 	@echo "  make pipeline-all            # 一括実行（全パイプライン）"
@@ -472,12 +473,24 @@ ingest:
 ingest-dbt:
 	@echo "🗄️ dbtでBronze層データ取り込み中..."
 	@if [ -d ".venv" ]; then \
+		cp data/raw/house_data.csv src/dbt/seeds/house_data.csv; \
 		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
 	@echo "✅ dbt Bronze層データ取り込み完了"
+
+# 生データをdbt seedsに同期
+sync-seed:
+	@echo "🔄 生データをdbt seedsに同期中..."
+	@if [ -f "data/raw/house_data.csv" ]; then \
+		cp data/raw/house_data.csv src/dbt/seeds/house_data.csv; \
+		echo "✅ 同期完了: data/raw/house_data.csv → src/dbt/seeds/house_data.csv"; \
+	else \
+		echo "❌ 生データが見つかりません: data/raw/house_data.csv"; \
+		exit 1; \
+	fi
 
 # dbt依存パッケージ取得
 dbt-deps:
@@ -550,15 +563,17 @@ dbt-docs:
 		exit 1; \
 	fi
 
-# dbtシード投入
+# dbtシード投入（同期付き）
 dbt-seed:
-	@echo "🌱 dbtシード投入中..."
+	@echo "🌱 dbtシード投入中（同期付き）..."
 	@if [ -d ".venv" ]; then \
+		cp data/raw/house_data.csv src/dbt/seeds/house_data.csv; \
 		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
+	@echo "✅ dbtシード投入完了"
 
 # dbt学習スクリプト実行
 train-dbt:
@@ -571,10 +586,11 @@ train-dbt:
 	fi
 	@echo "✅ dbt学習スクリプト実行完了"
 
-# dbt一括実行（seed + run + test）
+# dbt一括実行（同期 + seed + run + test）
 dbt-all:
-	@echo "🚀 dbt一括実行中..."
+	@echo "🚀 dbt一括実行中（同期付き）..."
 	@if [ -d ".venv" ]; then \
+		cp data/raw/house_data.csv src/dbt/seeds/house_data.csv; \
 		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed && DBT_PROFILES_DIR=~/.dbt dbt run && DBT_PROFILES_DIR=~/.dbt dbt test; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
