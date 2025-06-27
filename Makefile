@@ -1,7 +1,7 @@
 # ML Model CI/CD Makefile (Refactored)
 # 開発者体験向上のための便利コマンド集
 
-.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt train-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver ingest-dbt docs
+.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt dbt-deps dbt-seed dbt-staging dbt-intermediate dbt-marts dbt-test dbt-docs train-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver ingest-dbt docs
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -30,7 +30,7 @@ help:
 	@echo "🛠️ dbt関連:"
 	@echo "  make dbt-deps                # dbt依存パッケージ取得"
 	@echo "  make dbt-seed                # シードデータ投入"
-	@echo "  make dbt-run                 # dbt全層（staging/intermediate/marts）一括実行"
+	@echo "  make dbt                     # dbt全層（staging/intermediate/marts）一括実行"
 	@echo "  make dbt-staging             # Staging層のみ実行"
 	@echo "  make dbt-intermediate        # Intermediate層のみ実行"
 	@echo "  make dbt-marts               # Marts層のみ実行"
@@ -477,11 +477,22 @@ ingest-dbt:
 	fi
 	@echo "✅ dbt Bronze層データ取り込み完了"
 
+# dbt依存パッケージ取得
+dbt-deps:
+	@echo "📦 dbt依存パッケージ取得中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt deps --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+	@echo "✅ dbt依存パッケージ取得完了"
+
 # dbtで全層（Staging/Intermediate/Marts）作成
 dbt:
 	@echo "🔄 dbtで全層（Staging/Intermediate/Marts）作成中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run && ../../.venv/bin/dbt test; \
+		cd src/dbt && ../../.venv/bin/dbt run --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt} && ../../.venv/bin/dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -491,7 +502,7 @@ dbt:
 dbt-staging:
 	@echo "🔄 dbtでStaging層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select staging; \
+		cd src/dbt && ../../.venv/bin/dbt run --select staging --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -501,7 +512,7 @@ dbt-staging:
 dbt-intermediate:
 	@echo "🔄 dbtでIntermediate層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select intermediate; \
+		cd src/dbt && ../../.venv/bin/dbt run --select intermediate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -511,7 +522,7 @@ dbt-intermediate:
 dbt-marts:
 	@echo "🔄 dbtでMarts層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select marts; \
+		cd src/dbt && ../../.venv/bin/dbt run --select marts --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -521,17 +532,27 @@ dbt-marts:
 dbt-test:
 	@echo "🧪 dbtテスト実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt test; \
+		cd src/dbt && ../../.venv/bin/dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
 	fi
 
 # dbtドキュメント生成
-docs:
+dbt-docs:
 	@echo "📄 dbtドキュメント生成中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt docs generate && ../../.venv/bin/dbt docs serve; \
+		cd src/dbt && ../../.venv/bin/dbt docs generate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt} && ../../.venv/bin/dbt docs serve --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+
+# dbtシード投入
+dbt-seed:
+	@echo "🌱 dbtシード投入中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && ../../.venv/bin/dbt seed --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -656,39 +677,3 @@ metabase-update-driver:
 	@echo "🔄 Metabase再起動が必要です: make metabase-restart" 
 
 # source .venv/bin/activate && python src/dbt/ingest_raw_data.py
-
-# =============================================================================
-# dbt (Data Build Tool) コマンド
-# =============================================================================
-
-# 依存パッケージ取得
-dbt-deps:
-	@cd src/dbt && dbt deps
-
-# 全層（staging→intermediate→marts）一括実行
-dbt-run:
-	@cd src/dbt && dbt run --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# テスト一括実行
-dbt-test:
-	@cd src/dbt && dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# Staging層のみ
-dbt-staging:
-	@cd src/dbt && dbt run --select staging --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# Intermediate層のみ
-dbt-intermediate:
-	@cd src/dbt && dbt run --select intermediate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# Marts層のみ
-dbt-marts:
-	@cd src/dbt && dbt run --select marts --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# シード投入
-dbt-seed:
-	@cd src/dbt && dbt seed --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
-
-# ドキュメント生成＆サーブ
-dbt-docs:
-	@cd src/dbt && dbt docs generate && dbt docs serve --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}
