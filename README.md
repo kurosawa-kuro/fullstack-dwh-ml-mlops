@@ -33,23 +33,62 @@
 ```bash
 # 1. リポジトリクローン
 git clone <repository-url>
-cd mlops/fullstack-mlops
+cd simple-dwh-mlops
 
 # 2. 環境構築（約3分）
 make venv
-make install
+make deps-dev
 
-# 3. データウェアハウス構築（約1分）
-make dwh
+# 3. dbt依存パッケージ取得（約1分）
+make dbt-deps
 
-# 4. モデル訓練（約3分）
-make train-ensemble
+# 4. データ取り込みとdbtパイプライン実行（約2分）
+make dbt-seed
+make dbt
 
-# 5. 性能確認（約30秒）
+# 5. モデル訓練（約3分）
+make train-dbt
+
+# 6. 性能確認（約30秒）
 make check-ensemble
+```
 
-# 6. サービス起動（約30秒）
-make start-services
+### 🎯 主要Makefileコマンド
+
+#### 🔧 基本コマンド
+```bash
+make help                    # 利用可能なコマンド一覧
+make venv                    # 仮想環境作成
+make deps-dev                # 依存関係インストール
+make test-unit               # 単体テスト実行
+make format                  # コードフォーマット
+make clean                   # クリーンアップ
+```
+
+#### 🛠️ dbt関連コマンド
+```bash
+make dbt-deps                # dbt依存パッケージ取得
+make dbt-seed                # シードデータ投入
+make dbt                     # dbt全層（staging/intermediate/marts）一括実行
+make dbt-staging             # Staging層のみ実行
+make dbt-intermediate        # Intermediate層のみ実行
+make dbt-marts               # Marts層のみ実行
+make dbt-test                # dbtテスト一括実行
+make dbt-docs                # dbtドキュメント生成＆サーブ
+```
+
+#### 🚀 パイプラインコマンド
+```bash
+make pipeline-all            # 一括実行（全パイプライン）
+make pipeline-quick          # クイックパイプライン
+```
+
+#### 📊 Metabase BI統合
+```bash
+make metabase-setup          # Metabaseセットアップ
+make metabase-up             # Metabase起動
+make metabase-down           # Metabase停止
+make metabase-status         # Metabase状態確認
 ```
 
 ### 高速セットアップ（Docker使用）
@@ -68,6 +107,7 @@ docker-compose up mlflow   # MLflow実験管理
 - **Streamlit**: http://localhost:8501
 - **MLflow**: http://localhost:5555
 - **Metabase**: http://localhost:3000
+- **dbt Docs**: http://localhost:8080
 
 ---
 

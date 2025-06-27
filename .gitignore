@@ -348,12 +348,6 @@ docs/_build/
 target/
 data/interim/house_price_dwh.duckdb
 
-
-# dbt
-src/dbt/target/
-src/dbt/dbt_packages/
-src/dbt/logs/
-
 # Python build
 **/__pycache__/
 
