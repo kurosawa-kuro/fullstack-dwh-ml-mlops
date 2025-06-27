@@ -1,7 +1,7 @@
 # ML Model CI/CD Makefile (Refactored)
 # 開発者体験向上のための便利コマンド集
 
-.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt dbt-deps dbt-seed dbt-staging dbt-intermediate dbt-marts dbt-test dbt-docs train-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver ingest-dbt docs
+.PHONY: help install install-dev install-prod test test-unit test-integration test-e2e format clean train train-force pipeline pipeline-quick release setup-dev check-model status venv dwh dwh-explore dwh-backup dwh-stats dwh-cli dwh-tables dwh-summary dwh-location dwh-condition dwh-price-range dwh-year-built dwh-unlock train-ensemble train-ensemble-voting train-ensemble-stacking check-ensemble ingest dbt dbt-deps dbt-seed dbt-staging dbt-intermediate dbt-marts dbt-test dbt-docs train-dbt dbt-all ingest-dbt all metabase-full metabase-setup metabase-up metabase-down metabase-status metabase-logs metabase-check-connection metabase-dashboard-setup metabase-restart metabase-clean metabase-update-driver docs
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -31,11 +31,13 @@ help:
 	@echo "  make dbt-deps                # dbt依存パッケージ取得"
 	@echo "  make dbt-seed                # シードデータ投入"
 	@echo "  make dbt                     # dbt全層（staging/intermediate/marts）一括実行"
-	@echo "  make dbt-staging             # Staging層のみ実行"
-	@echo "  make dbt-intermediate        # Intermediate層のみ実行"
-	@echo "  make dbt-marts               # Marts層のみ実行"
+	@echo "  make dbt-all                 # dbt一括実行（seed + run + test）"
+	@echo "  make dbt-staging             # Staging層のみ実行（stg_house_data）"
+	@echo "  make dbt-intermediate        # Intermediate層のみ実行（int_house_data）"
+	@echo "  make dbt-marts               # Marts層のみ実行（f_house_ml）"
 	@echo "  make dbt-test                # dbtテスト一括実行"
 	@echo "  make dbt-docs                # dbtドキュメント生成＆サーブ"
+	@echo "  make ingest-dbt              # dbtでBronze層データ取り込み"
 	@echo ""
 	@echo "🚀 パイプライン:"
 	@echo "  make pipeline-all            # 一括実行（全パイプライン）"
@@ -470,7 +472,7 @@ ingest:
 ingest-dbt:
 	@echo "🗄️ dbtでBronze層データ取り込み中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/python ../data_ingest/ingest_raw.py; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -481,7 +483,7 @@ ingest-dbt:
 dbt-deps:
 	@echo "📦 dbt依存パッケージ取得中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt deps --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt deps; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -492,7 +494,7 @@ dbt-deps:
 dbt:
 	@echo "🔄 dbtで全層（Staging/Intermediate/Marts）作成中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt} && ../../.venv/bin/dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt run; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -502,7 +504,7 @@ dbt:
 dbt-staging:
 	@echo "🔄 dbtでStaging層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select staging --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt run --select stg_house_data; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -512,7 +514,7 @@ dbt-staging:
 dbt-intermediate:
 	@echo "🔄 dbtでIntermediate層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select intermediate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt run --select int_house_data; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -522,7 +524,7 @@ dbt-intermediate:
 dbt-marts:
 	@echo "🔄 dbtでMarts層実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt run --select marts --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt run --select f_house_ml; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -532,7 +534,7 @@ dbt-marts:
 dbt-test:
 	@echo "🧪 dbtテスト実行中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt test --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt test; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -542,7 +544,7 @@ dbt-test:
 dbt-docs:
 	@echo "📄 dbtドキュメント生成中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt docs generate --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt} && ../../.venv/bin/dbt docs serve --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt docs generate && DBT_PROFILES_DIR=~/.dbt dbt docs serve; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -552,7 +554,7 @@ dbt-docs:
 dbt-seed:
 	@echo "🌱 dbtシード投入中..."
 	@if [ -d ".venv" ]; then \
-		cd src/dbt && ../../.venv/bin/dbt seed --profiles-dir $${DBT_PROFILES_DIR:-~/.dbt}; \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed; \
 	else \
 		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
 		exit 1; \
@@ -569,8 +571,19 @@ train-dbt:
 	fi
 	@echo "✅ dbt学習スクリプト実行完了"
 
+# dbt一括実行（seed + run + test）
+dbt-all:
+	@echo "🚀 dbt一括実行中..."
+	@if [ -d ".venv" ]; then \
+		cd src/dbt && DBT_PROFILES_DIR=~/.dbt dbt seed && DBT_PROFILES_DIR=~/.dbt dbt run && DBT_PROFILES_DIR=~/.dbt dbt test; \
+	else \
+		echo "❌ 仮想環境が見つかりません。先に 'make venv' を実行してください"; \
+		exit 1; \
+	fi
+	@echo "✅ dbt一括実行完了"
+
 # 一括実行
-all: ingest dbt train-dbt
+all: dbt-seed dbt train-dbt
 	@echo "🚀 一括実行完了"
 
 # =============================================================================
