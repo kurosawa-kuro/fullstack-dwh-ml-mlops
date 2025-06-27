@@ -351,3 +351,4 @@ data/interim/house_price_dwh.duckdb
 # Python build
 **/__pycache__/
 
+src/dbt/seeds/house_data.csv
